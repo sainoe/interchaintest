@@ -450,7 +450,7 @@ func (c *CosmosChain) transformCCVState(ctx context.Context, ccvState []byte, co
 		return nil, fmt.Errorf("failed to write ccv state to file: %w", err)
 	}
 	job := dockerutil.NewImage(c.log, c.GetNode().DockerClient, c.GetNode().NetworkID,
-		c.GetNode().TestName, "ghcr.io/strangelove-ventures/heighliner/ics", imageVersion,
+		c.GetNode().TestName, "ghcr.io/cosmos/interchain-security", imageVersion, // TODO: change this to ghcr.io/strangelove-ventures/heighliner/ics once v6.4 is tagged
 	)
 	cmd := []string{"interchain-security-cd", "genesis", "transform"}
 	if toVersion != "" {
