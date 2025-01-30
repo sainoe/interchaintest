@@ -82,3 +82,37 @@ func GetAndFundTestUsers(
 	}
 	return users
 }
+
+// GetAndFundTestUserWithMnemonicNoRdmKey is an exact duplicate of GetAndFundTestUserWithMnemonic
+// with the exception that it does not generate a random key name.
+func GetAndFundTestUserWithMnemonicNoRdmKey(
+	ctx context.Context,
+	keyNamePrefix, mnemonic string,
+	amount math.Int,
+	chain ibc.Chain,
+) (ibc.Wallet, error) {
+	chainCfg := chain.Config()
+	keyName := fmt.Sprintf("%s-%s", keyNamePrefix, chainCfg.ChainID)
+	user, err := chain.BuildWallet(ctx, keyName, mnemonic)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get source user wallet: %w", err)
+	}
+
+	err = chain.SendFunds(ctx, FaucetAccountKeyName, ibc.WalletAmount{
+		Address: user.FormattedAddress(),
+		Amount:  amount,
+		Denom:   chainCfg.Denom,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get funds from faucet: %w", err)
+	}
+
+	// If this chain is an instance of Penumbra we need to initialize a new pclientd instance for the
+	// newly created test user account.
+	err = CreatePenumbraClient(ctx, chain, keyName)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
